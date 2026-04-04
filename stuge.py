@@ -3,6 +3,7 @@ import turtle
 from dataclasses import dataclass, field
 from typing import Any, Callable
 import sys
+from time import perf_counter
 
 KEYS = [
     "space",
@@ -604,15 +605,14 @@ def default_loop(state):
 
 
 @dataclass
-class StgeState:
+class StugeState:
     frame_time_target: int = 0
     delta_time: float = 0.0
-    frame_start: float = 0.0
     keys: list[str] = field(default_factory=list)
     loop_fun: Callable[[Any], Any] = default_loop
 
 
-_state = StgeState()
+_state = StugeState()
 
 
 def size() -> tuple[int, int]:
@@ -655,6 +655,10 @@ def run(setup: Callable[[], Any], loop: Callable[[Any], Any], fps: int = 30):
 
     def frame():
         nonlocal state
+        nonlocal start_time
+        now = perf_counter()
+        _state.delta_time = now - start_time
+        start_time = now
         turtle.clear()
         turtle.home()
         state = _state.loop_fun(state)
@@ -665,5 +669,6 @@ def run(setup: Callable[[], Any], loop: Callable[[Any], Any], fps: int = 30):
         except turtle.Terminator:
             pass
 
+    start_time = perf_counter()
     frame()
     turtle.mainloop()
